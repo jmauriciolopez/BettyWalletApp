@@ -2,30 +2,37 @@
 using BettyWalletApp.Ports.In;
 using BettyWalletApp.Ports.Out;
 
-namespace BettyWallet.Domain.Services;
+namespace BettyWalletApp.Domain.Services;
 
 public class WalletApplicationService : IManageWalletUseCase, IPlaySlotUseCase
 {
-    private readonly Wallet _wallet = new();
     private readonly IRngEngine _rngEngine;
+    private readonly IWalletRepository _walletRepository;
     private readonly object _lock = new();
+    private readonly decimal _minBet;
+    private readonly decimal _maxBet;
 
-    public WalletApplicationService(IRngEngine rngEngine)
+    public WalletApplicationService(IRngEngine rngEngine, IWalletRepository walletRepository, decimal minBet = 1m, decimal maxBet = 10m)
     {
         _rngEngine = rngEngine;
+        _walletRepository = walletRepository;
+        _minBet = minBet;
+        _maxBet = maxBet;
     }
 
     public decimal GetBalance()
     {
-        lock (_lock) return _wallet.Balance;
+        lock (_lock) return _walletRepository.Get().Balance;
     }
 
     public decimal Deposit(decimal amount)
     {
         lock (_lock)
         {
-            _wallet.Deposit(amount);
-            return _wallet.Balance;
+            var wallet = _walletRepository.Get();
+            wallet.Deposit(amount);
+            _walletRepository.Save(wallet);
+            return wallet.Balance;
         }
     }
 
@@ -33,25 +40,28 @@ public class WalletApplicationService : IManageWalletUseCase, IPlaySlotUseCase
     {
         lock (_lock)
         {
-            _wallet.Withdraw(amount);
-            return _wallet.Balance;
+            var wallet = _walletRepository.Get();
+            wallet.Withdraw(amount);
+            _walletRepository.Save(wallet);
+            return wallet.Balance;
         }
     }
 
     public GameResult Play(decimal betAmount)
     {
-        if (betAmount < 1 || betAmount > 10)
-            throw new ArgumentOutOfRangeException(nameof(betAmount), "La apuesta debe estar entre $1 y $10.");
+        if (betAmount < _minBet || betAmount > _maxBet)
+            throw new ArgumentOutOfRangeException(nameof(betAmount), $"The bet must be between ${_minBet} y ${_maxBet}");
 
         lock (_lock)
         {
-            if (_wallet.Balance < betAmount)
-                throw new InvalidOperationException("Saldo insuficiente para realizar esta apuesta.");
+            var wallet = _walletRepository.Get();
+            if (wallet.Balance < betAmount)
+                throw new InvalidOperationException("Insufficient funds to place this bet.");
 
-            // Consumimos el puerto de salida para la aleatoriedad
             var result = _rngEngine.GenerateSpinResult(betAmount);
 
-            _wallet.ProcessBetAndWin(betAmount, result.WinAmount);
+            wallet.ProcessBetAndWin(betAmount, result.WinAmount);
+            _walletRepository.Save(wallet);
             return result;
         }
     }

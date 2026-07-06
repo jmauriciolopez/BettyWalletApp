@@ -22,7 +22,7 @@ namespace BettyWalletApp.Adapters.In
             bool running = true;
             while (running)
             {
-                Console.WriteLine($"Saldo Actual: ${_walletUseCase.GetBalance():F2}");
+                Console.WriteLine($"Current Balance: ${_walletUseCase.GetBalance():F2}");
                 Console.WriteLine("1. Deposit | 2. Withdrawal | 3. Bet | 4. Exit");
                 Console.Write("Submit Action: ");
                 string? choice = Console.ReadLine();
@@ -32,27 +32,34 @@ namespace BettyWalletApp.Adapters.In
                     switch (choice)
                     {
                         case "1":
-                            Console.Write("Monto a depositar: ");
+                            Console.Write("Amount to deposit: ");
                             if (decimal.TryParse(Console.ReadLine(), out decimal dep))
-                                Console.WriteLine($"✔️ Nuevo Saldo: ${_walletUseCase.Deposit(dep):F2}\n");
+                            {
+                                _walletUseCase.Deposit(dep);
+                                Console.WriteLine($"Your deposit of ${dep} was successful.\n");
+                            }
                             break;
                         case "2":
-                            Console.Write("Monto a retirar: ");
+                            Console.Write("Amount to withdraw: ");
                             if (decimal.TryParse(Console.ReadLine(), out decimal with))
-                                Console.WriteLine($"✔️ Nuevo Saldo: ${_walletUseCase.Withdraw(with):F2}\n");
+                            {
+                                _walletUseCase.Withdraw(with);
+                                Console.WriteLine($"Your withdraw of ${with} was successful.\n");
+                            }
                             break;
                         case "3":
-                            Console.Write("Apuesta ($1-$10): ");
+                            Console.Write("Bet ($1-$10): ");
                             if (decimal.TryParse(Console.ReadLine(), out decimal bet))
                             {
                                 var res = _slotUseCase.Play(bet);
-                                if (res.IsWin) Console.WriteLine($"🎉 ¡Ganaste x{res.Multiplier:F2}! Premio: ${res.WinAmount:F2}");
-                                else Console.WriteLine("😢 Perdiste la apuesta.");
+                                if (res.IsWin) Console.WriteLine($"🎉 ¡You won x{res.Multiplier:F2}! Prize: ${res.WinAmount:F2}");
+                                else Console.WriteLine("You lost the bet.");
                                 Console.WriteLine();
                             }
                             break;
                         case "4":
                             running = false;
+                            Console.WriteLine("Thank you for playing! Hope to see you again soon.");
                             break;
                     }
                 }

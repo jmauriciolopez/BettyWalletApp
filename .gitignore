@@ -5,3 +5,5 @@
 /.vs
 /BettyWalletApp/bin/Debug/net9.0
 /BettyWalletApp/obj
+/BettyWalletApp.Tests/bin/Debug/net9.0
+/BettyWalletApp.Tests/obj

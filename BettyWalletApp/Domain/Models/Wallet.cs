@@ -14,16 +14,16 @@
         {
             ValidatePositiveAmount(amount);
             if (Balance < amount)
-                throw new InvalidOperationException("Saldo insuficiente para retirar fondos.");
+                throw new InvalidOperationException("Insufficient funds to withdraw.");
             Balance -= amount;
         }
 
         public void ProcessBetAndWin(decimal betAmount, decimal winAmount)
         {
             ValidatePositiveAmount(betAmount);
-            if (winAmount < 0) throw new ArgumentException("El premio no puede ser negativo.");
+            if (winAmount < 0) throw new ArgumentException("The prize cannot be negative.");
             if (Balance < betAmount)
-                throw new InvalidOperationException("Saldo insuficiente para realizar la apuesta.");
+                throw new InvalidOperationException("Insufficient funds to withdraw.");
 
             Balance = Balance - betAmount + winAmount;
         }
@@ -31,7 +31,7 @@
         private static void ValidatePositiveAmount(decimal amount)
         {
             if (amount <= 0)
-                throw new ArgumentException("El monto de la operación debe ser un número positivo.");
+                throw new ArgumentException("The transaction amount must be a positive number.");
         }
     }
 }
